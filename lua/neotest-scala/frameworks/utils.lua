@@ -1,55 +1,30 @@
---- Strip ainsi characters from the string, leaving the rest of the string intact.
----@param s string
+local lib = require("neotest.lib")
+
+local M = {}
+
+--- Strip quotes from the (captured) test position.
+---@param position neotest.Position
 ---@return string
-local function strip_ainsi_chars(s)
-    local v = s:gsub("\x1b%[%d+;%d+;%d+;%d+;%d+m", "")
-        :gsub("\x1b%[%d+;%d+;%d+;%d+m", "")
-        :gsub("\x1b%[%d+;%d+;%d+m", "")
-        :gsub("\x1b%[%d+;%d+m", "")
-        :gsub("\x1b%[%d+m", "")
-    return v
-end
-
---- Strip sbt info logging prefix from string.
----@param s string
----@return string
-local function strip_sbt_info_prefix(s)
-    local v = s:gsub("^%[info%] ", "")
-    return v
-end
-
----@param project string
----@param runner string
----@param test_path string|nil
----@param extra_args table|string
----@return string[]
-local function build_command_with_test_path(project, runner, test_path, extra_args)
-    if runner == "bloop" then
-        local full_test_path
-        if not test_path then
-            full_test_path = {}
-        else
-            full_test_path = { "--", test_path }
-        end
-        return vim.tbl_flatten({ "bloop", "test", extra_args, project, full_test_path })
+function M.get_position_name(position)
+    if position.type == "test" then
+        local value = string.gsub(position.name, '"', "")
+        return value
     end
-    if not test_path then
-        return vim.tbl_flatten({ "sbt", extra_args, project .. "/test" })
-    end
-    -- TODO: Run sbt with colors, but figuoure wich ainsi sequence need to be matched.
-    return vim.tbl_flatten({
-        "sbt",
-        "--no-colors",
-        extra_args,
-        project .. "/testOnly -- " .. '"' .. test_path .. '"',
-    })
+    return position.name
 end
 
---- ... function definitions ...
+---Get a package name from the top of the file.
+---@return string|nil
+function M.get_package_name(file)
+    local success, lines = pcall(lib.files.read_lines, file)
+    if not success then
+        return nil
+    end
+    local line = lines[1]
+    if vim.startswith(line, "package") then
+        return vim.split(line, " ")[2] .. "."
+    end
+    return ""
+end
 
-return {
-    strip_ainsi_chars = strip_ainsi_chars,
-    strip_sbt_info_prefix = strip_sbt_info_prefix,
-    build_command_with_test_path = build_command_with_test_path
-}
-
+return M

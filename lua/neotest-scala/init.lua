@@ -1,7 +1,7 @@
 local Path = require("plenary.path")
 local lib = require("neotest.lib")
-local fw = require("neotest-scala.frameworks.framework")
-local utils = require("neotest-scala.utils")
+local fw = require("neotest-scala.framework")
+local utils = require("neotest-scala.frameworks.utils")
 
 ---@type neotest.Adapter
 local ScalaNeotestAdapter = { name = "neotest-scala" }
