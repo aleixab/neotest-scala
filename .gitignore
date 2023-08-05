@@ -1,4 +1,5 @@
 # Compiled Lua sources
+.luarc.json
 luac.out
 .luarc.json
 
